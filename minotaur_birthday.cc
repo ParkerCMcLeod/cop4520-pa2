@@ -34,7 +34,40 @@ void guestFunction(int guestNumber) {
     while (true) {
         unique_lock<mutex> lock(mtx); 
 
+        if (guestOneReplacementsAtom >= numGuestsAtom) {
+            break; // All guests have completed their turns
+        }
 
+        if (guestNumber != (currentGuestAtom % numGuestsAtom) + 1) {
+            continue; // Not the guest's turn
+        }
+
+        enterLabyrinth(guestNumber);
+
+        if (cupcakePresentAtom) {
+            if (guestNumber == 1) {
+                if (!guestOneAlreadyEatenAtom) {
+                    cout << "Guest " << guestNumber << " eats the cupcake." << endl;
+                    guestOneAlreadyEatenAtom = true;
+                    cupcakePresentAtom = false;
+                }
+            } else {
+                cout << "Guest " << guestNumber << " eats the cupcake." << endl;
+                cupcakePresentAtom = false;
+            }
+        } else {
+            if (guestNumber == 1 && guestOneAlreadyEatenAtom) {
+                cout << "Guest " << guestNumber << " replaces the cupcake." << endl;
+                guestOneReplacementsAtom++;
+                cupcakePresentAtom = true;
+            }
+        }
+
+        completedTurnsAtom++;
+        uniform_int_distribution<int> dist(1, numGuestsAtom);
+        currentGuestAtom = dist(rd); // Select next guest
+
+        exitLabyrinth(guestNumber);
         lock.unlock();
     }
 }
