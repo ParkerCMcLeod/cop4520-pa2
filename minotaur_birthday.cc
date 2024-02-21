@@ -4,16 +4,19 @@
 #include <mutex>
 #include <random>
 #include <atomic>
+#include <condition_variable>
 
 using namespace std;
 
-// Global atomic variables for thread synchronization
+// Global variables for thread synchronization
 atomic<int> numGuestsAtom(0);
 atomic<int> currentGuestAtom(0);
-atomic<int> guestOneReplacementsAtom(0);
+atomic<int> countingGuestReplacementsAtom(0);
 atomic<bool> cupcakePresentAtom(true);
-atomic<bool> guestOneAlreadyEatenAtom(false);
+atomic<bool> countingGuestAlreadyEatenAtom(false);
 atomic<int> completedTurnsAtom(0);
+atomic<bool> simulationDone(false);
+condition_variable cv;
 
 // Mutex for thread synchronization
 mutex mtx;
@@ -23,7 +26,7 @@ random_device rd;
 
 void enterLabyrinth(int guestNumber) {
     cout << "Guest " << guestNumber << " enters the labyrinth." << endl;
-    this_thread::sleep_for(chrono::milliseconds(100));
+    this_thread::sleep_for(chrono::milliseconds(100)); // Guest is navigating the maze
 }
 
 void exitLabyrinth(int guestNumber) {
@@ -32,23 +35,29 @@ void exitLabyrinth(int guestNumber) {
 
 void guestFunction(int guestNumber) {
     while (true) {
-        unique_lock<mutex> lock(mtx); 
+        unique_lock<mutex> lock(mtx);
 
-        if (guestOneReplacementsAtom >= numGuestsAtom) {
-            break; // All guests have completed their turns
+        cv.wait(lock, [guestNumber]() { 
+            return simulationDone.load() || guestNumber == (currentGuestAtom.load() % numGuestsAtom) + 1; 
+        });
+
+        if (simulationDone) {
+            break; // Exit if simulation is done
         }
 
-        if (guestNumber != (currentGuestAtom % numGuestsAtom) + 1) {
-            continue; // Not the guest's turn
+        if (countingGuestReplacementsAtom >= numGuestsAtom) {
+            simulationDone = true; // Set the simulation as done
+            cv.notify_all(); // Ensure all threads can exit
+            break; // All guests have completed their turns
         }
 
         enterLabyrinth(guestNumber);
 
         if (cupcakePresentAtom) {
             if (guestNumber == 1) {
-                if (!guestOneAlreadyEatenAtom) {
+                if (!countingGuestAlreadyEatenAtom) {
                     cout << "Guest " << guestNumber << " eats the cupcake." << endl;
-                    guestOneAlreadyEatenAtom = true;
+                    countingGuestAlreadyEatenAtom = true;
                     cupcakePresentAtom = false;
                 }
             } else {
@@ -56,19 +65,21 @@ void guestFunction(int guestNumber) {
                 cupcakePresentAtom = false;
             }
         } else {
-            if (guestNumber == 1 && guestOneAlreadyEatenAtom) {
+            if (guestNumber == 1 && countingGuestAlreadyEatenAtom) {
                 cout << "Guest " << guestNumber << " replaces the cupcake." << endl;
-                guestOneReplacementsAtom++;
+                countingGuestReplacementsAtom++;
                 cupcakePresentAtom = true;
             }
         }
 
         completedTurnsAtom++;
+
         uniform_int_distribution<int> dist(1, numGuestsAtom);
         currentGuestAtom = dist(rd); // Select next guest
 
+        cv.notify_all(); // Notify minotuar that the current guest has exited the maze
+
         exitLabyrinth(guestNumber);
-        lock.unlock();
     }
 }
 
@@ -84,8 +95,8 @@ void startSimulation(int numGuests) {
         t.join();
     }
 
-    cout << "Guest one replaced the cupcake " << guestOneReplacementsAtom << " times." << endl;
-    cout << "We can guarantee all guests have visited the labyrinth! It took " << completedTurnsAtom << " turns to make this guarantee." << endl;
+    cout << "Guest one replaced the cupcake " << countingGuestReplacementsAtom << " times." << endl; // Guest who counts answers
+    cout << "We can guarantee all guests have visited the labyrinth! It took " << completedTurnsAtom << " turns to make this guarantee." << endl; // Guest who counts answers
 }
 
 int main() {
