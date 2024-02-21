@@ -1,3 +1,10 @@
+/*
+COP4520-24Spring 0V01: Concept of Parallel and Distributed Processing
+Programming Assignment 2 Problem 1
+Instructor: Juan Parra
+Due date: Jan 26 at 12am - Feb 23 at 11:59pm
+*/
+
 #include <iostream>
 #include <thread>
 #include <vector>

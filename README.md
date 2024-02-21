@@ -1,35 +1,126 @@
-Windows Command Prompt Compilation/Execution:
+## Problem 1: minotaur_birthday
 
-    Compilation: g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc
-    Execution: minotaur_birthday
-    Unified: g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc && minotaur_birthday
+### Windows Command Prompt Compilation/Execution:
 
-Linux Bash Shell Compilation/Execution:
+- Compilation: `g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc`
+- Execution: `minotaur_birthday`
+- Unified: `g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc && minotaur_birthday`
 
-    Compilation: g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc
-    Execution: ./minotaur_birthday
-    Unified: g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc && ./minotaur_birthday
+### Linux Bash Shell Compilation/Execution:
 
-PowerShell Compilation/Execution:
+- Compilation: `g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc`
+- Execution: `./minotaur_birthday`
+- Unified: `g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc && ./minotaur_birthday`
 
-    Compilation: g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc
-    Execution: .\minotaur_birthday
-    Unified: g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc; if ($?) { .\minotaur_birthday }
+### PowerShell Compilation/Execution:
 
-Output Formatting:
+- Compilation: `g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc`
+- Execution: `.\minotaur_birthday`
+- Unified: `g++ -std=c++11 -pthread -o minotaur_birthday minotaur_birthday.cc; if ($?) { .\minotaur_birthday }`
 
-Proof of Correctness: 
+## Problem 2: minotaur_vase - strategy 3
 
-Statement:
+### Windows Command Prompt Compilation/Execution:
 
-Designate a Counter: Before entering the labyrinth, the guests agree to designate one guest as the counter. This guest is responsible for keeping track of how many unique guests have visited the labyrinth.
+- Compilation: `g++ -std=c++11 -pthread -o minotaur_vase minotaur_vase.cc`
+- Execution: `minotaur_vase`
+- Unified: `g++ -std=c++11 -pthread -o minotaur_vase minotaur_vase.cc && minotaur_vase`
 
-Cupcake Protocol: Guests follow these rules:
+### Linux Bash Shell Compilation/Execution:
 
-If a guest (not the counter) enters and finds the cupcake, they eat it and leave the plate empty. This signifies their first visit.
-If the counter enters and finds the cupcake, they leave it, marking one complete round of visits.
-The counter is allowed to eat the cupcake only after they have counted that all guests, including themselves, have made at least one visit. They then eat the cupcake and request a new one, incrementing their internal count of total guests visited.
-Guests who have already eaten a cupcake once will leave it if they find it again, ensuring the counter can track new visits accurately.
-Ending the Game: The game ends when the counter has counted N unique visits (including their own). At this point, the counter knows all guests have visited the labyrinth at least once, and they can announce to the Minotaur that the objective is completed.
+- Compilation: `g++ -std=c++11 -pthread -o minotaur_vase minotaur_vase.cc`
+- Execution: `./minotaur_vase`
+- Unified: `g++ -std=c++11 -pthread -o minotaur_vase minotaur_vase.cc && ./minotaur_vase`
 
-Experimental Evaluations:
+### PowerShell Compilation/Execution:
+
+- Compilation: `g++ -std=c++11 -pthread -o minotaur_vase minotaur_vase.cc`
+- Execution: `.\minotaur_vase`
+- Unified: `g++ -std=c++11 -pthread -o minotaur_vase minotaur_vase.cc; if ($?) { .\minotaur_vase }`
+
+### Output Formatting:
+
+#### Problem 1: minotaur_birthday
+
+```
+Enter the number of guests: N
+[ guest logic explained here ]
+Guest one replaced the cupcake N times.
+We can guarantee all guests have visited the labyrinth! It took 32 turns to make this guarantee.
+```
+
+#### Problem 2: minotaur_vase - strategy 3:
+
+```
+Enter the number of guests: N
+Guest 1 is waiting in line.
+Guest 1 is viewing the vase.
+Guest 1 has finished viewing the vase.
+Guest 2 is waiting in line.
+Guest 2 is viewing the vase.
+Guest 2 has finished viewing the vase.
+Guest . is waiting in line.
+Guest . is viewing the vase.
+Guest . has finished viewing the vase.
+Guest N is waiting in line.
+Guest N is viewing the vase.
+Guest N has finished viewing the vase.
+```
+
+### Statement:
+
+#### Problem 1: minotaur_birthday
+
+To address the problem, I initially brainstormed solutions on a whiteboard and recognized that guests could encode their experiences through their decisions to eat, ignore, or replace the cake. This led me to the idea of appointing a counter to track the number of eaten cakes, allowing me to determine the number of unique guests who navigated the maze. With this strategy in place, the multithreaded implementation became straightforward. Each guest is represented by a thread that sequentially enters the maze, makes decisions, and exits. After exiting, it signals the next thread based on the Minotaur's selection. This process repeats until the designated counter thread confirms all have eaten the cake.
+
+##### Guest Logic:
+
+A guest consumes the cupcake on their first visit unless they're the counter, who eats it only once but replaces it thereafter. If the counter finds the cupcake missing (a sign another guest has visited), they replenish it, thereby tracking visits. This method counts visits through the counter's replacements, enabling them to confirm when all guests have visited the labyrinth. The counter is then able to answer the question "can you guarantee every guest has visited?".
+
+#### Problem 2: minotaur_vase - strategy 3
+
+##### Strategy Selection Advantages/Disadvantages:
+
+###### Strategy 1: Open Door Check
+
+- Advantages: Allows guests the freedom to explore and attempt entry at any time, enhancing the party's spontaneity.
+- Disadvantages: May cause overcrowding and lacks guarantees for viewing
+
+ the vase, potentially leading to frustration.
+
+###### Strategy 2: Availability Sign
+
+- Advantages: Clearly shows if the showroom is open, reducing wait times at the door and promoting efficient use.
+- Disadvantages: Depends on guests to update the sign correctly, which might not always occur, and doesn't solve queuing issues.
+
+###### Strategy 3: Queue System
+
+- Advantages: Provides organized access and guarantees turns, minimizing door crowding.
+- Disadvantages: Could result in long waits and reduce guests' time to enjoy the party.
+
+##### Conclusion:
+
+- The queue system (Strategy 3) is the most structured, ensuring orderly access but may increase wait times. The optimal strategy depends on the event's size and guests' preference for freedom or structure.
+- The implementation was straightforward.
+
+### Proof of Correctness:
+
+#### Problem 1: minotaur_birthday
+
+The program outputs which guests are visiting the maze and their corresponding decisions regarding the cupcake in that visit. Using these outputs, I was able to manually verify the logic through the outputs for N selections of 1 through 5. Twice.
+
+#### Problem 2: minotaur_vase - strategy 3
+
+The program outputs which guests are viewing the vase and which are waiting in line. Using these outputs, I was able to manually verify the logic through the outputs for N selections of 1 through 5. Twice. Because it was a simple queue, it was not difficult to verify.
+
+### Experimental Evaluations:
+
+#### Problem 1: minotaur_birthday
+
+I quickly implemented a solution that logically worked, but it was initially suboptimal. My approach had threads continuously checking their turn using atomic variables, leading to 100% CPU usage due to constant looping. To mitigate this, I introduced a delay between checks, but soon recognized that a `std::condition_variable` was the ideal solution. This C++ feature enabled me to establish an event-based waiting system for threads, significantly reducing condition checks and allowing threads to wait efficiently for their turn.
+
+#### Problem 2: minotaur_vase - strategy 3
+
+This solution was able to implement a subset of all the same features as the previous program in an optimal fashion, utilizing the correct C++ features for each logical requirement.
+
+---
